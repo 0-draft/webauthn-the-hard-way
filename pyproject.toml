@@ -1,0 +1,25 @@
+[project]
+name = "webauthn-the-hard-way"
+version = "0.1.0"
+description = "Build a WebAuthn Relying Party from scratch."
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0",
+    "cryptography>=42.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["server*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

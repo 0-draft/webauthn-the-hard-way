@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WebAuthn the Hard Way</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1a1a1a; }
+    h1 { font-size: 1.4rem; }
+    fieldset { border: 1px solid #ccc; padding: 16px; margin-bottom: 16px; }
+    legend { padding: 0 8px; font-weight: bold; }
+    input, button { font: inherit; padding: 6px 10px; }
+    button { cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: progress; }
+    pre#log { background: #111; color: #cfe; padding: 12px; height: 320px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem; }
+    .ok { color: #5f5; }
+    .err { color: #f88; }
+    .info { color: #8cf; }
+    code { background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>WebAuthn the Hard Way</h1>
+  <p>Relying Party at <code>http://localhost:5000</code>. The server parses CBOR / COSE / authData by hand. Watch the log below to see what each step exchanges.</p>
+
+  <fieldset>
+    <legend>Register</legend>
+    <label>username <input id="username" value="demo"></label>
+    <button id="register">Register a credential</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Authenticate</legend>
+    <button id="authenticate">Authenticate</button>
+    <button id="list">List credentials</button>
+    <button id="reset">Reset store</button>
+  </fieldset>
+
+  <h2>Log</h2>
+  <pre id="log"></pre>
+
+  <script src="/static/register.js"></script>
+  <script src="/static/authenticate.js"></script>
+</body>
+</html>
