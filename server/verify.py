@@ -136,8 +136,13 @@ def verify_registration(
         raise VerificationError(f"unsupported COSE alg in credential: {cose_alg}")
 
     # Steps 17-18: verify the attestation statement. Format-specific verifier.
+    # Wrap any format-specific exception in VerificationError so callers only
+    # need to handle one class.
     verifier = attestation.get(att.fmt)
-    verifier(att.att_stmt, att.auth_data, client_data_hash)
+    try:
+        verifier(att.att_stmt, att.auth_data, client_data_hash)
+    except Exception as e:
+        raise VerificationError(f"attestation ({att.fmt}) verification failed: {e}") from e
 
     # Step 19: check the credentialId is not already registered to another user.
     # We do that check at the storage layer (app.py) because it requires the DB.

@@ -1,18 +1,21 @@
 """Attestation format dispatch.
 
 Each format ("none", "packed", "fido-u2f", "tpm", "android-key", "apple", ...)
-gets its own verifier module. We implement two of them:
-  - "none":   the authenticator declines to attest. The attStmt is an empty map.
-  - "packed": the most common real-world format. Two sub-variants (self / x5c).
+gets its own verifier module. We implement three of them:
+  - "none":     authenticator declines to attest. attStmt is empty.
+  - "packed":   modern CTAP2 default. Self attestation or full (x5c).
+  - "fido-u2f": legacy CTAP1 / U2F authenticators (YubiKey 4 / NEO etc.).
+                Same idea, different signature base.
 
 Adding a new format = drop a new module and register it in the FORMATS table.
 """
 
-from . import none, packed
+from . import fido_u2f, none, packed
 
 FORMATS = {
     "none": none.verify,
     "packed": packed.verify,
+    "fido-u2f": fido_u2f.verify,
 }
 
 

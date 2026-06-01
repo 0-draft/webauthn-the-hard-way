@@ -12,7 +12,7 @@ A Flask Relying Party (`localhost:5000`) that:
 2. Parses the `attestationObject` (CBOR) by hand.
 3. Parses the `authenticatorData` byte layout by hand.
 4. Decodes the `COSE_Key` into an ECDSA P-256 (or RSA) public key by hand.
-5. Verifies the `packed` attestation signature.
+5. Verifies the `packed` attestation signature. `fido-u2f` is also supported for legacy CTAP1 authenticators (YubiKey 4 / NEO).
 6. Authenticates via `navigator.credentials.get()` and verifies the assertion signature.
 
 The only external dependencies are `flask` (HTTP server) and `cryptography` (the actual ECDSA / RSA primitives). Everything WebAuthn-specific is local code.
@@ -45,7 +45,8 @@ Reading the spec ([WebAuthn L3](https://www.w3.org/TR/webauthn-3/)) and walking 
 │   └── attestation/
 │       ├── __init__.py
 │       ├── none.py              # fmt="none"
-│       └── packed.py            # fmt="packed" self + x5c
+│       ├── packed.py            # fmt="packed" self + x5c
+│       └── fido_u2f.py          # fmt="fido-u2f" (legacy CTAP1)
 ├── client/
 │   ├── index.html               # register + authenticate UI
 │   ├── register.js              # navigator.credentials.create()
@@ -80,7 +81,7 @@ If you want to learn rather than just run:
 ## Limitations (on purpose)
 
 - In-memory credential store, no database.
-- Attestation: `none` + `packed` only. Skips `fido-u2f`, `tpm`, `android-key`, `android-safetynet`, `apple`. (These are interesting but additive; the core ceremony is identical.)
+- Attestation: `none` + `packed` + `fido-u2f`. Skips `tpm`, `android-key`, `android-safetynet`, `apple`. (These are interesting but additive; the core ceremony is identical.)
 - Algorithms: ES256 (`-7`) + RS256 (`-257`). No EdDSA / RS1.
 - No metadata service (FIDO MDS) integration. AAGUID is parsed but not cross-referenced.
 - Localhost only. WebAuthn requires HTTPS for non-localhost RP IDs; the spec carves out `localhost` as the one exception, which keeps the demo dependency-free.
