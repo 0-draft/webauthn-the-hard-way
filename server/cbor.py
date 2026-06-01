@@ -26,7 +26,7 @@ the map) is itself parsed later as a separate byte layout.
 from __future__ import annotations
 
 import struct
-from typing import Any, Tuple
+from typing import Any
 
 # CBOR major types live in the top 3 bits of the initial byte.
 # RFC 8949 §3 calls these "major type 0" through "major type 7".
@@ -38,6 +38,7 @@ MT_ARRAY = 4
 MT_MAP = 5
 MT_TAG = 6
 MT_SIMPLE = 7
+
 
 # Sentinel for indefinite-length break (0xff in major type 7).
 class _Break:
@@ -51,7 +52,7 @@ class CBORDecodeError(ValueError):
     pass
 
 
-def _read_argument(buf: bytes, offset: int, ai: int) -> Tuple[int, int]:
+def _read_argument(buf: bytes, offset: int, ai: int) -> tuple[int, int]:
     """Read the integer "argument" that follows the initial byte.
 
     `ai` is the additional info (low 5 bits of the initial byte). Per RFC 8949 §3:
@@ -89,7 +90,7 @@ def _read_argument(buf: bytes, offset: int, ai: int) -> Tuple[int, int]:
     raise CBORDecodeError(f"reserved additional info: {ai}")
 
 
-def _decode(buf: bytes, offset: int) -> Tuple[Any, int]:
+def _decode(buf: bytes, offset: int) -> tuple[Any, int]:
     if offset >= len(buf):
         raise CBORDecodeError("unexpected end of buffer")
 
@@ -176,7 +177,7 @@ def _decode(buf: bytes, offset: int) -> Tuple[Any, int]:
     raise CBORDecodeError(f"unknown major type {mt}")
 
 
-def _decode_indef_string(buf: bytes, offset: int, is_text: bool) -> Tuple[Any, int]:
+def _decode_indef_string(buf: bytes, offset: int, is_text: bool) -> tuple[Any, int]:
     chunks: list[bytes] = []
     while True:
         chunk, offset = _decode(buf, offset)
@@ -191,7 +192,7 @@ def _decode_indef_string(buf: bytes, offset: int, is_text: bool) -> Tuple[Any, i
     return (joined.decode("utf-8") if is_text else joined), offset
 
 
-def _decode_indef_array(buf: bytes, offset: int) -> Tuple[list, int]:
+def _decode_indef_array(buf: bytes, offset: int) -> tuple[list, int]:
     items: list = []
     while True:
         item, offset = _decode(buf, offset)
@@ -201,7 +202,7 @@ def _decode_indef_array(buf: bytes, offset: int) -> Tuple[list, int]:
     return items, offset
 
 
-def _decode_indef_map(buf: bytes, offset: int) -> Tuple[dict, int]:
+def _decode_indef_map(buf: bytes, offset: int) -> tuple[dict, int]:
     result: dict = {}
     while True:
         key, offset = _decode(buf, offset)
@@ -225,7 +226,7 @@ def loads(buf: bytes) -> Any:
     return value
 
 
-def loads_with_rest(buf: bytes) -> Tuple[Any, bytes]:
+def loads_with_rest(buf: bytes) -> tuple[Any, bytes]:
     """Decode one CBOR item and return (value, remaining_bytes).
 
     Used by the COSE_Key parser inside authenticatorData, where the COSE_Key is

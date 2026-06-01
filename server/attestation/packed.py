@@ -22,8 +22,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric import ec, padding
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec, padding
 
 if TYPE_CHECKING:
     from ..parsers import AuthenticatorData
@@ -38,7 +38,7 @@ class AttestationError(ValueError):
     pass
 
 
-def verify(att_stmt: dict, auth_data: "AuthenticatorData", client_data_hash: bytes) -> None:
+def verify(att_stmt: dict, auth_data: AuthenticatorData, client_data_hash: bytes) -> None:
     alg = att_stmt.get("alg")
     sig = att_stmt.get("sig")
     x5c = att_stmt.get("x5c")
@@ -63,7 +63,7 @@ def verify(att_stmt: dict, auth_data: "AuthenticatorData", client_data_hash: byt
         _verify_self(alg, sig, signed, auth_data)
 
 
-def _verify_self(alg: int, sig: bytes, signed: bytes, auth_data: "AuthenticatorData") -> None:
+def _verify_self(alg: int, sig: bytes, signed: bytes, auth_data: AuthenticatorData) -> None:
     if auth_data.attested_credential_data is None:
         raise AttestationError("self attestation requires attested credential data")
     cose_key = auth_data.attested_credential_data.credential_public_key
@@ -81,7 +81,7 @@ def _verify_self(alg: int, sig: bytes, signed: bytes, auth_data: "AuthenticatorD
         raise AttestationError(f"self attestation signature failed: {e}") from e
 
 
-def _verify_with_x5c(alg: int, sig: bytes, signed: bytes, x5c: list, auth_data: "AuthenticatorData") -> None:
+def _verify_with_x5c(alg: int, sig: bytes, signed: bytes, x5c: list, auth_data: AuthenticatorData) -> None:
     # x5c is a list of DER-encoded X.509 certificates. The leaf is x5c[0].
     leaf_der = x5c[0]
     if not isinstance(leaf_der, (bytes, bytearray)):

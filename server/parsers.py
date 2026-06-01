@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import struct
 from dataclasses import dataclass
-from typing import Optional
 
 from . import cbor, cose
 
@@ -51,7 +50,7 @@ class ParseError(ValueError):
 
 @dataclass
 class AttestedCredentialData:
-    aaguid: bytes               # 16 bytes
+    aaguid: bytes  # 16 bytes
     credential_id: bytes
     credential_public_key: cose.CoseKey
     credential_public_key_cbor: bytes  # raw COSE_Key bytes; useful for assertion verification later
@@ -59,12 +58,12 @@ class AttestedCredentialData:
 
 @dataclass
 class AuthenticatorData:
-    rp_id_hash: bytes           # 32 bytes (SHA-256 of RP ID)
-    flags: int                  # 1 byte
-    sign_count: int             # 4 bytes, big-endian
-    attested_credential_data: Optional[AttestedCredentialData]
-    extensions: Optional[dict]
-    raw: bytes                  # original bytes; needed when computing signature base later
+    rp_id_hash: bytes  # 32 bytes (SHA-256 of RP ID)
+    flags: int  # 1 byte
+    sign_count: int  # 4 bytes, big-endian
+    attested_credential_data: AttestedCredentialData | None
+    extensions: dict | None
+    raw: bytes  # original bytes; needed when computing signature base later
 
     @property
     def user_present(self) -> bool:
@@ -96,7 +95,7 @@ class AttestationObject:
     fmt: str
     auth_data: AuthenticatorData
     att_stmt: dict
-    raw_auth_data: bytes        # exact bytes that went into the CBOR map; signature base inputs depend on these
+    raw_auth_data: bytes  # exact bytes that went into the CBOR map; signature base inputs depend on these
 
 
 def parse_authenticator_data(buf: bytes) -> AuthenticatorData:
@@ -109,20 +108,20 @@ def parse_authenticator_data(buf: bytes) -> AuthenticatorData:
     sign_count = struct.unpack(">I", buf[33:37])[0]
 
     offset = 37
-    attested: Optional[AttestedCredentialData] = None
-    extensions: Optional[dict] = None
+    attested: AttestedCredentialData | None = None
+    extensions: dict | None = None
 
     if flags & FLAG_AT:
         # Attested credential data is present.
         if len(buf) < offset + 18:
             raise ParseError("authenticatorData truncated before AAGUID + credIdLength")
-        aaguid = bytes(buf[offset:offset + 16])
+        aaguid = bytes(buf[offset : offset + 16])
         offset += 16
-        cred_id_len = struct.unpack(">H", buf[offset:offset + 2])[0]
+        cred_id_len = struct.unpack(">H", buf[offset : offset + 2])[0]
         offset += 2
         if len(buf) < offset + cred_id_len:
             raise ParseError(f"authenticatorData truncated inside credentialId (need {cred_id_len})")
-        credential_id = bytes(buf[offset:offset + cred_id_len])
+        credential_id = bytes(buf[offset : offset + cred_id_len])
         offset += cred_id_len
 
         # credentialPublicKey is a single CBOR item. Its length is not encoded;
@@ -130,7 +129,7 @@ def parse_authenticator_data(buf: bytes) -> AuthenticatorData:
         # extensions (another CBOR map) may follow it.
         cose_map, rest = cbor.loads_with_rest(buf[offset:])
         cose_bytes_consumed = (len(buf) - offset) - len(rest)
-        cose_bytes = bytes(buf[offset:offset + cose_bytes_consumed])
+        cose_bytes = bytes(buf[offset : offset + cose_bytes_consumed])
         offset += cose_bytes_consumed
 
         cose_key = cose.parse(cose_map)
@@ -154,8 +153,7 @@ def parse_authenticator_data(buf: bytes) -> AuthenticatorData:
     else:
         if offset != len(buf):
             raise ParseError(
-                f"authenticatorData has {len(buf) - offset} trailing bytes "
-                f"but the ED flag is not set"
+                f"authenticatorData has {len(buf) - offset} trailing bytes but the ED flag is not set"
             )
 
     return AuthenticatorData(

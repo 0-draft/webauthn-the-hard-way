@@ -19,17 +19,16 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
-import json
 import secrets
-import struct
 
 import pytest
 from cryptography import x509
-from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.x509.oid import NameOID
 
 from server import verify
+
 from .cbor_encoder import dumps as cbor_dumps
 from .test_e2e import (
     FLAG_AT,
@@ -37,7 +36,6 @@ from .test_e2e import (
     FLAG_UV,
     ORIGIN,
     RP_ID,
-    _b64url,
     _make_auth_data,
     _make_client_data,
     _make_cose_es256,
@@ -51,9 +49,11 @@ def _make_attestation_cert(att_priv: ec.EllipticCurvePrivateKey) -> bytes:
     test we self-sign because the §8.6 verifier only consults the leaf's public
     key, not its issuer chain.
     """
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, "Test U2F Attestation"),
-    ])
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "Test U2F Attestation"),
+        ]
+    )
     builder = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -67,8 +67,9 @@ def _make_attestation_cert(att_priv: ec.EllipticCurvePrivateKey) -> bytes:
     return cert.public_bytes(serialization.Encoding.DER)
 
 
-def _build_u2f_attestation_object(*, cred_priv, att_priv, credential_id: bytes,
-                                  challenge: bytes, tamper: bool = False):
+def _build_u2f_attestation_object(
+    *, cred_priv, att_priv, credential_id: bytes, challenge: bytes, tamper: bool = False
+):
     """Return (attestationObject, clientDataJSON)."""
     cose_key_bytes = _make_cose_es256(cred_priv.public_key())
     auth_data = _make_auth_data(
@@ -86,11 +87,7 @@ def _build_u2f_attestation_object(*, cred_priv, att_priv, credential_id: bytes,
 
     # Uncompressed P-256 point form for U2F.
     cred_numbers = cred_priv.public_key().public_numbers()
-    pub_uncompressed = (
-        b"\x04"
-        + cred_numbers.x.to_bytes(32, "big")
-        + cred_numbers.y.to_bytes(32, "big")
-    )
+    pub_uncompressed = b"\x04" + cred_numbers.x.to_bytes(32, "big") + cred_numbers.y.to_bytes(32, "big")
 
     signed = b"\x00" + rp_id_hash + client_data_hash + credential_id + pub_uncompressed
     if tamper:
@@ -99,11 +96,13 @@ def _build_u2f_attestation_object(*, cred_priv, att_priv, credential_id: bytes,
 
     cert_der = _make_attestation_cert(att_priv)
 
-    att_obj = cbor_dumps({
-        "fmt": "fido-u2f",
-        "authData": auth_data,
-        "attStmt": {"x5c": [cert_der], "sig": sig},
-    })
+    att_obj = cbor_dumps(
+        {
+            "fmt": "fido-u2f",
+            "authData": auth_data,
+            "attStmt": {"x5c": [cert_der], "sig": sig},
+        }
+    )
     return att_obj, client_data
 
 

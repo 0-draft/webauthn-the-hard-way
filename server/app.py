@@ -21,14 +21,11 @@ from __future__ import annotations
 import base64
 import os
 import secrets
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
 
 from flask import Flask, jsonify, request, send_from_directory, session
 
 from . import verify
-
 
 CLIENT_DIR = Path(__file__).resolve().parent.parent / "client"
 
@@ -47,7 +44,7 @@ def b64url_decode(s: str) -> bytes:
 
 
 # In-memory store: credential_id (bytes) -> StoredCredential.
-CREDENTIALS: Dict[bytes, verify.StoredCredential] = {}
+CREDENTIALS: dict[bytes, verify.StoredCredential] = {}
 
 
 def create_app() -> Flask:
@@ -90,8 +87,8 @@ def create_app() -> Flask:
             },
             "challenge": b64url_encode(challenge),
             "pubKeyCredParams": [
-                {"type": "public-key", "alg": -7},     # ES256
-                {"type": "public-key", "alg": -257},   # RS256
+                {"type": "public-key", "alg": -7},  # ES256
+                {"type": "public-key", "alg": -257},  # RS256
             ],
             "timeout": 60_000,
             "attestation": "none",
@@ -155,14 +152,16 @@ def create_app() -> Flask:
         # Clear the registration challenge so it cannot be replayed.
         session.pop("reg_challenge", None)
 
-        return jsonify({
-            "ok": True,
-            "credentialId": b64url_encode(result.credential_id),
-            "aaguid": result.aaguid.hex(),
-            "alg": result.public_key.alg,
-            "backupEligible": result.backup_eligible,
-            "backupState": result.backup_state,
-        })
+        return jsonify(
+            {
+                "ok": True,
+                "credentialId": b64url_encode(result.credential_id),
+                "aaguid": result.aaguid.hex(),
+                "alg": result.public_key.alg,
+                "backupEligible": result.backup_eligible,
+                "backupState": result.backup_state,
+            }
+        )
 
     # ----- authentication -----
 
@@ -177,8 +176,7 @@ def create_app() -> Flask:
             "timeout": 60_000,
             "userVerification": "required",
             "allowCredentials": [
-                {"type": "public-key", "id": b64url_encode(c.credential_id)}
-                for c in CREDENTIALS.values()
+                {"type": "public-key", "id": b64url_encode(c.credential_id)} for c in CREDENTIALS.values()
             ],
         }
         return jsonify(options)
@@ -225,26 +223,30 @@ def create_app() -> Flask:
         stored.sign_count = result.new_sign_count
         session.pop("auth_challenge", None)
 
-        return jsonify({
-            "ok": True,
-            "userHandle": b64url_encode(stored.user_handle),
-            "newSignCount": result.new_sign_count,
-            "userVerified": result.user_verified,
-            "backupState": result.backup_state,
-        })
+        return jsonify(
+            {
+                "ok": True,
+                "userHandle": b64url_encode(stored.user_handle),
+                "newSignCount": result.new_sign_count,
+                "userVerified": result.user_verified,
+                "backupState": result.backup_state,
+            }
+        )
 
     @app.get("/credentials")
     def list_credentials():
         # Debug helper: list what is registered. Not part of the WebAuthn protocol.
-        return jsonify([
-            {
-                "credentialId": b64url_encode(c.credential_id),
-                "aaguid": c.aaguid.hex(),
-                "signCount": c.sign_count,
-                "userHandle": b64url_encode(c.user_handle),
-            }
-            for c in CREDENTIALS.values()
-        ])
+        return jsonify(
+            [
+                {
+                    "credentialId": b64url_encode(c.credential_id),
+                    "aaguid": c.aaguid.hex(),
+                    "signCount": c.sign_count,
+                    "userHandle": b64url_encode(c.user_handle),
+                }
+                for c in CREDENTIALS.values()
+            ]
+        )
 
     @app.post("/credentials/reset")
     def reset_credentials():

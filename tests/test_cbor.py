@@ -15,7 +15,6 @@ import pytest
 
 from server import cbor
 
-
 # (hex_input, expected_python_value)
 # Curated subset of RFC 8949 Appendix A relevant to integers, strings, arrays, maps.
 VECTORS = [
@@ -46,8 +45,7 @@ VECTORS = [
     ("a201020304", {1: 2, 3: 4}),
     ("a26161016162820203", {"a": 1, "b": [2, 3]}),
     ("826161a161626163", ["a", {"b": "c"}]),
-    ("a56161614161626142616361436164614461656145",
-     {"a": "A", "b": "B", "c": "C", "d": "D", "e": "E"}),
+    ("a56161614161626142616361436164614461656145", {"a": "A", "b": "B", "c": "C", "d": "D", "e": "E"}),
 ]
 
 

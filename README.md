@@ -1,5 +1,7 @@
 # WebAuthn the Hard Way
 
+[![CI](https://github.com/0-draft/webauthn-the-hard-way/actions/workflows/ci.yml/badge.svg)](https://github.com/0-draft/webauthn-the-hard-way/actions/workflows/ci.yml)
+
 Build a WebAuthn Relying Party from scratch. No `py_webauthn`, no `fido2`, no SimpleWebAuthn. CBOR, COSE, attestation parsing, signature verification: all by hand.
 
 This is the educational counterpart to "Kubernetes the Hard Way" for the WebAuthn / Passkey stack. The goal is not a production RP. The goal is to make the byte layout, the ceremony state machine, and the verification logic visible.

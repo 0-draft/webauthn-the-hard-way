@@ -25,9 +25,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
 from cryptography.hazmat.primitives import hashes
-
+from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
 
 # COSE_Key labels (RFC 8152 §7).
 LABEL_KTY = 1
@@ -48,6 +47,7 @@ CRV_P256 = 1
 @dataclass
 class CoseKey:
     """Decoded COSE_Key plus the cryptography public key object."""
+
     kty: int
     alg: int
     public_key: object  # ec.EllipticCurvePublicKey or rsa.RSAPublicKey

@@ -20,12 +20,12 @@ import secrets
 import struct
 
 import pytest
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from server import verify
-from .cbor_encoder import dumps as cbor_dumps
 
+from .cbor_encoder import dumps as cbor_dumps
 
 RP_ID = "localhost"
 ORIGIN = "http://localhost:5000"
@@ -42,12 +42,15 @@ def _b64url(b: bytes) -> str:
 
 def _make_client_data(ceremony: str, challenge: bytes) -> bytes:
     """Synthesize clientDataJSON matching what a real browser would send."""
-    return json.dumps({
-        "type": ceremony,
-        "challenge": _b64url(challenge),
-        "origin": ORIGIN,
-        "crossOrigin": False,
-    }, separators=(",", ":")).encode("utf-8")
+    return json.dumps(
+        {
+            "type": ceremony,
+            "challenge": _b64url(challenge),
+            "origin": ORIGIN,
+            "crossOrigin": False,
+        },
+        separators=(",", ":"),
+    ).encode("utf-8")
 
 
 def _make_cose_es256(pub) -> bytes:
@@ -58,8 +61,14 @@ def _make_cose_es256(pub) -> bytes:
     return cbor_dumps({1: 2, 3: -7, -1: 1, -2: x, -3: y})
 
 
-def _make_auth_data(*, flags: int, sign_count: int, aaguid: bytes = b"\x00" * 16,
-                   credential_id: bytes = b"", cose_key: bytes = b"") -> bytes:
+def _make_auth_data(
+    *,
+    flags: int,
+    sign_count: int,
+    aaguid: bytes = b"\x00" * 16,
+    credential_id: bytes = b"",
+    cose_key: bytes = b"",
+) -> bytes:
     """Assemble the authenticatorData byte layout."""
     out = bytearray()
     out += RP_ID_HASH
@@ -74,6 +83,7 @@ def _make_auth_data(*, flags: int, sign_count: int, aaguid: bytes = b"\x00" * 16
 
 
 # ---------- fmt=none ----------
+
 
 def test_e2e_none_registration_then_assertion():
     # 1. authenticator generates a P-256 keypair.
@@ -171,11 +181,14 @@ def test_e2e_origin_mismatch_rejected():
     att_obj = cbor_dumps({"fmt": "none", "authData": auth_data, "attStmt": {}})
     challenge = secrets.token_bytes(32)
     # clientDataJSON claims an attacker origin.
-    bad_client_data = json.dumps({
-        "type": "webauthn.create",
-        "challenge": _b64url(challenge),
-        "origin": "https://evil.example",
-    }, separators=(",", ":")).encode()
+    bad_client_data = json.dumps(
+        {
+            "type": "webauthn.create",
+            "challenge": _b64url(challenge),
+            "origin": "https://evil.example",
+        },
+        separators=(",", ":"),
+    ).encode()
 
     with pytest.raises(verify.VerificationError, match="origin mismatch"):
         verify.verify_registration(
@@ -213,6 +226,7 @@ def test_e2e_challenge_mismatch_rejected():
 
 # ---------- fmt=packed self attestation ----------
 
+
 def test_e2e_packed_self_attestation():
     priv = ec.generate_private_key(ec.SECP256R1())
     cose_key_bytes = _make_cose_es256(priv.public_key())
@@ -231,11 +245,13 @@ def test_e2e_packed_self_attestation():
 
     # Self attestation: the credential's own private key signs authData || clientDataHash.
     signature = priv.sign(auth_data + client_data_hash, ec.ECDSA(hashes.SHA256()))
-    att_obj = cbor_dumps({
-        "fmt": "packed",
-        "authData": auth_data,
-        "attStmt": {"alg": -7, "sig": signature},
-    })
+    att_obj = cbor_dumps(
+        {
+            "fmt": "packed",
+            "authData": auth_data,
+            "attStmt": {"alg": -7, "sig": signature},
+        }
+    )
 
     result = verify.verify_registration(
         client_data_json=client_data,
@@ -263,11 +279,13 @@ def test_e2e_packed_self_attestation_alg_mismatch_rejected():
     signature = priv.sign(auth_data + client_data_hash, ec.ECDSA(hashes.SHA256()))
 
     # attStmt claims alg=-257 (RS256), but credential is ES256. Spec §8.2 rejects.
-    att_obj = cbor_dumps({
-        "fmt": "packed",
-        "authData": auth_data,
-        "attStmt": {"alg": -257, "sig": signature},
-    })
+    att_obj = cbor_dumps(
+        {
+            "fmt": "packed",
+            "authData": auth_data,
+            "attStmt": {"alg": -257, "sig": signature},
+        }
+    )
 
     with pytest.raises(verify.VerificationError, match="alg mismatch"):
         # alg mismatch lives inside the AttestationError message;

@@ -18,7 +18,6 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import Optional
 
 from . import attestation, cose, parsers
 
@@ -31,7 +30,7 @@ class VerificationError(ValueError):
 class RegistrationResult:
     credential_id: bytes
     public_key: cose.CoseKey
-    public_key_cbor: bytes      # raw COSE_Key bytes, what we will need at assertion time
+    public_key_cbor: bytes  # raw COSE_Key bytes, what we will need at assertion time
     sign_count: int
     aaguid: bytes
     backup_eligible: bool
@@ -44,15 +43,16 @@ class StoredCredential:
     public_key_cbor: bytes
     sign_count: int
     aaguid: bytes
-    user_handle: bytes          # opaque user id we picked at registration time
+    user_handle: bytes  # opaque user id we picked at registration time
 
 
 def _sha256(data: bytes) -> bytes:
     return hashlib.sha256(data).digest()
 
 
-def _parse_client_data(client_data_json: bytes, expected_type: str, expected_challenge: bytes,
-                       expected_origin: str) -> None:
+def _parse_client_data(
+    client_data_json: bytes, expected_type: str, expected_challenge: bytes, expected_origin: str
+) -> None:
     """Common clientDataJSON checks shared by both ceremonies (§7.1 steps 7-10, §7.2 steps 11-14)."""
     try:
         cdj = json.loads(client_data_json)
@@ -60,7 +60,9 @@ def _parse_client_data(client_data_json: bytes, expected_type: str, expected_cha
         raise VerificationError(f"clientDataJSON is not valid JSON: {e}") from e
 
     if cdj.get("type") != expected_type:
-        raise VerificationError(f"clientDataJSON.type mismatch: expected {expected_type!r}, got {cdj.get('type')!r}")
+        raise VerificationError(
+            f"clientDataJSON.type mismatch: expected {expected_type!r}, got {cdj.get('type')!r}"
+        )
 
     # The challenge in clientDataJSON is base64url WITHOUT padding (per the
     # CollectedClientData IDL).  We compare on raw bytes to avoid being tricked
@@ -85,6 +87,7 @@ def _b64url_decode(s: str) -> bytes:
         raise VerificationError("base64url value is not a string")
     pad = "=" * (-len(s) % 4)
     import base64
+
     return base64.urlsafe_b64decode(s + pad)
 
 
@@ -212,6 +215,7 @@ def verify_assertion(
     # request rather than storing the cryptography object so the store remains
     # serializable.
     from . import cbor  # local import to avoid circular at module top
+
     cose_map = cbor.loads(stored.public_key_cbor)
     cose_key = cose.parse(cose_map)
 

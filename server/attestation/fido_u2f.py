@@ -26,8 +26,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 
 if TYPE_CHECKING:
     from ..parsers import AuthenticatorData
@@ -37,7 +37,7 @@ class AttestationError(ValueError):
     pass
 
 
-def verify(att_stmt: dict, auth_data: "AuthenticatorData", client_data_hash: bytes) -> None:
+def verify(att_stmt: dict, auth_data: AuthenticatorData, client_data_hash: bytes) -> None:
     # Step 1: check attStmt has the required fields with the required shapes.
     x5c = att_stmt.get("x5c")
     sig = att_stmt.get("sig")
@@ -76,13 +76,7 @@ def verify(att_stmt: dict, auth_data: "AuthenticatorData", client_data_hash: byt
     credential_id = auth_data.attested_credential_data.credential_id
 
     # Step 4: build the signature base. §8.6 verification step 4.
-    signed = (
-        b"\x00"
-        + auth_data.rp_id_hash
-        + client_data_hash
-        + credential_id
-        + pub_uncompressed
-    )
+    signed = b"\x00" + auth_data.rp_id_hash + client_data_hash + credential_id + pub_uncompressed
 
     # Step 5: verify the signature with the attestation cert's public key.
     try:
