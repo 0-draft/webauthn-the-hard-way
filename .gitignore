@@ -5,3 +5,8 @@ venv/
 .pytest_cache/
 *.egg-info/
 .DS_Store
+
+# Claude Code
+.claude/
+CLAUDE.md
+CLAUDE.local.md
