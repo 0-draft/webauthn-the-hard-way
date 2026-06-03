@@ -1,4 +1,8 @@
+<img src="./assets/logo.png" align="right" width="160" alt="webauthn-the-hard-way logo" />
+
 # WebAuthn the Hard Way
+
+**English** | [日本語](README.ja.md)
 
 [![CI](https://github.com/0-draft/webauthn-the-hard-way/actions/workflows/ci.yml/badge.svg)](https://github.com/0-draft/webauthn-the-hard-way/actions/workflows/ci.yml)
 
