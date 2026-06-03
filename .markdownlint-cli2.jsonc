@@ -1,0 +1,14 @@
+{
+  // Mirrors ~/.markdownlint-cli2.jsonc so this repo's Markdown (README with a
+  // right-aligned <img> logo, long prose lines) lints clean locally and in any
+  // hook that runs markdownlint-cli2 from the repo root.
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD024": false,
+    "MD033": { "allowed_elements": ["picture", "source", "img"] },
+    "MD036": false,
+    "MD041": false,
+    "MD060": false
+  }
+}
